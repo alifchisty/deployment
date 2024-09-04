@@ -1,0 +1,10 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.red-bg {
+    background-color: red;
+    color: white;
+    text-align: center;
+    padding: 50px;
+}

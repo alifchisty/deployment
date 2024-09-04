@@ -1,35 +1,69 @@
-// src/app.js
 const express = require('express');
 const path = require('path');
 const hbs = require('hbs');
-const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth');
+const bcrypt = require('bcrypt');
+const User = require('./models/register');
 require('./db/conn');
 
-dotenv.config()
 const app = express();
-const port = process.env.PORT || 3000;
-
 //public static path
 const static_path= path.join(__dirname, "../public");
-const template_path= path.join(__dirname, "../public/tamplates/views") 
-const partials_path = path.join(__dirname, "../public/templates/partials")
+const template_path= path.join(__dirname, "../tamplates/views") 
+const partials_path = path.join(__dirname, "../templates/partials")
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended:false}))
 app.use(express.static(static_path));
-app.use(bodyParser.json())
 
 app.set(`view engine`, `hbs`);
 app.set(`views`, template_path);
 hbs.registerPartials(partials_path);
 
-// Routes
 app.get('/', (req, res) => {
     res.render('register');
 });
-app.use('/', authRoutes);
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+app.get('/register', (req, res) => {
+    res.render('register');
+});
+
+app.post('/register', async (req, res) => {
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const user = new User({
+            username: req.body.username,
+            email: req.body.email,
+            password: hashedPassword,
+        });
+        await user.save();
+        res.redirect('/login');
+    } catch (error) {
+        res.status(500).send('Error registering user');
+    }
+});
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.post('/login', async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (user && await bcrypt.compare(req.body.password, user.password)) {
+            res.redirect(`/mine?username=${user.username}`);
+        } else {
+            res.status(400).send('Invalid login credentials');
+        }
+    } catch (error) {
+        res.status(500).send('Error logging in');
+    }
+});
+
+app.get('/mine', (req, res) => {
+    const username = req.query.username;
+    res.render('mine', { username });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
