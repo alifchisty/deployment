@@ -8,7 +8,7 @@ require('./db/conn');
 const app = express();
 //public static path
 const static_path= path.join(__dirname, "../public");
-const template_path= path.join(__dirname, "../tamplates/views") 
+const template_path= path.join(__dirname, "../public/tamplates/views") 
 const partials_path = path.join(__dirname, "../templates/partials")
 // Middleware
 app.use(express.json());
@@ -20,10 +20,10 @@ app.set(`views`, template_path);
 hbs.registerPartials(partials_path);
 
 app.get('/', (req, res) => {
-    res.render('register');
+  res.sendFile(path.join(static_path, 'register.html'))
 });
 app.get('/register', (req, res) => {
-    res.render('register');
+  res.sendFile(path.join(static_path, 'register.html'))
 });
 
 app.post('/register', async (req, res) => {
@@ -40,10 +40,17 @@ app.post('/register', async (req, res) => {
         res.status(500).send('Error registering user');
     }
 });
-
-app.get('/login', (req, res) => {
-    res.render('login');
+app.get('/expe', (req, res) => {
+  res.sendFile(path.join(static_path, 'expe.html'))
 });
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(static_path, 'login.html'))
+});
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(static_path, 'login.html'))
+});
+
 
 app.post('/login', async (req, res) => {
     try {
@@ -58,10 +65,15 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// app.get('/mine', (req, res) => {
+//     const username = req.query.username;
+//     res.send('mine', { username });
+// });
+
 app.get('/mine', (req, res) => {
-    const username = req.query.username;
-    res.render('mine', { username });
+    res.sendFile(path.join(static_path, 'mine.html'));
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
